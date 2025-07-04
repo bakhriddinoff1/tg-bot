@@ -1,0 +1,4 @@
+﻿pyrogram
+tgcrypto
+pytz
+python-dotenv
