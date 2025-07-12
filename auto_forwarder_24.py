@@ -6,24 +6,34 @@ from datetime import datetime
 import pytz
 import re
 import os
+import sys
 
 # ⛓ .env orqali olingan ma'lumotlar
-API_ID = int(os.getenv("API_ID"))
-API_HASH = os.getenv("API_HASH")
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-TARGET_CHANNEL = os.getenv("TARGET_CHANNEL")
+try:
+    API_ID = int(os.getenv("API_ID"))
+    API_HASH = os.getenv("API_HASH")
+    BOT_TOKEN = os.getenv("BOT_TOKEN")
+    TARGET_CHANNEL = os.getenv("TARGET_CHANNEL")
+    ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
+except Exception as e:
+    print(f"[❌ XATO] Muhim .env ma'lumotlari noto‘g‘ri: {e}")
+    sys.exit()
+
+START_HOUR = int(os.getenv("START_HOUR", 7))
+END_HOUR = int(os.getenv("END_HOUR", 23))
 MANBA1 = os.getenv("MANBA1", "")
 MANBA2 = os.getenv("MANBA2", "")
 MANBA3 = os.getenv("MANBA3", "")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
-START_HOUR = int(os.getenv("START_HOUR", 7))
-END_HOUR = int(os.getenv("END_HOUR", 23))
 
 # 🔎 Faqat to‘ldirilgan manbalarni olamiz
-source_channels = [c for c in [MANBA1, MANBA2, MANBA3] if c.strip()]
+source_channels = [c.strip() for c in [MANBA1, MANBA2, MANBA3] if c.strip()]
+
+if not all([API_ID, API_HASH, BOT_TOKEN, TARGET_CHANNEL]):
+    print("[❌ XATO] .env faylda API_ID, API_HASH, BOT_TOKEN yoki TARGET_CHANNEL yo‘q.")
+    sys.exit()
 
 # 💬 Inline tugma
-inline_btn = InlineKeyboardMarkup([[
+inline_btn = InlineKeyboardMarkup([[ 
     InlineKeyboardButton("📢 Yangiliklar 24/7", url="https://t.me/yangiliklar2_4_7")
 ]])
 
@@ -46,7 +56,7 @@ def is_clean_message(text: str) -> bool:
 
     mentions = re.findall(r"@\w+", text)
     for m in mentions:
-        if m.lower() != "@tyxuzbek":
+        if "@tyxuzbek" not in m.lower():
             return False
     return True
 
@@ -81,7 +91,6 @@ async def repost(client: Client, message: Message):
                     caption=caption,
                     reply_markup=inline_btn
                 )
-
         elif message.text:
             if not is_clean_message(message.text):
                 return
@@ -92,6 +101,9 @@ async def repost(client: Client, message: Message):
                 reply_markup=inline_btn
             )
 
+        # ✅ Log
+        print(f"[{now.strftime('%H:%M:%S')}] Post yuborildi — {message.chat.id}")
+
     except Exception as e:
         print(f"[Xatolik] {e}")
 
@@ -100,6 +112,7 @@ async def repost(client: Client, message: Message):
 @app.on_message(filters.command("status") & filters.user(ADMIN_ID))
 async def status_handler(client, message):
     await message.reply("✅ Bot ishlayapti va repost xizmati faollashgan.")
+
 
 # ▶️ Run bot
 app.run()
