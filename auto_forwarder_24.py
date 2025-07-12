@@ -1,4 +1,4 @@
-# auto_forwarder.py
+# auto_forwarder_24.py
 
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
